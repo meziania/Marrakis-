@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { products as seedProducts, type Product } from "@/data/products";
+import bundledStore from "../../data/store.json";
 
 export type Client = {
   id: string;
@@ -45,7 +46,14 @@ export type ClientSummary = Client & {
   loyal: boolean;
 };
 
-const filePath = path.join(process.cwd(), "data", "store.json");
+const bundledPath = path.join(process.cwd(), "data", "store.json");
+
+function writablePath() {
+  if (process.env.VERCEL) return path.join("/tmp", "marrakisse-store.json");
+  return bundledPath;
+}
+
+let memory: StoreData | null = null;
 
 function emptyStore(): StoreData {
   return {
@@ -59,32 +67,54 @@ function emptyStore(): StoreData {
   };
 }
 
-export function readStore(): StoreData {
-  if (!fs.existsSync(filePath)) {
-    const initial = emptyStore();
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, JSON.stringify(initial, null, 2));
-    return initial;
-  }
-
-  const parsed = JSON.parse(fs.readFileSync(filePath, "utf8")) as StoreData;
+function normalize(parsed: Partial<StoreData> | null | undefined): StoreData {
   return {
-    products: parsed.products?.length ? parsed.products : seedProducts,
-    clients: parsed.clients ?? [],
-    orders: (parsed.orders ?? []).map((order) => ({
+    products: parsed?.products?.length ? parsed.products : seedProducts,
+    clients: parsed?.clients ?? [],
+    orders: (parsed?.orders ?? []).map((order) => ({
       ...order,
       status: normalizeStatus(order.status),
     })),
     settings: {
-      loyaltyMinOrders: parsed.settings?.loyaltyMinOrders ?? 2,
-      loyaltyMinSpend: parsed.settings?.loyaltyMinSpend ?? 300,
+      loyaltyMinOrders: parsed?.settings?.loyaltyMinOrders ?? 2,
+      loyaltyMinSpend: parsed?.settings?.loyaltyMinSpend ?? 300,
     },
   };
 }
 
+function readFileStore(file: string): StoreData | null {
+  try {
+    if (!fs.existsSync(file)) return null;
+    return normalize(JSON.parse(fs.readFileSync(file, "utf8")) as StoreData);
+  } catch {
+    return null;
+  }
+}
+
+function loadInitial(): StoreData {
+  return (
+    readFileStore(writablePath()) ??
+    readFileStore(bundledPath) ??
+    normalize(bundledStore as StoreData) ??
+    emptyStore()
+  );
+}
+
+export function readStore(): StoreData {
+  if (!memory) memory = loadInitial();
+  return JSON.parse(JSON.stringify(memory)) as StoreData;
+}
+
 export function writeStore(store: StoreData) {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify(store, null, 2));
+  memory = store;
+  const file = writablePath();
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, JSON.stringify(store, null, 2));
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code !== "EROFS" && code !== "EACCES" && code !== "ENOENT") throw error;
+  }
 }
 
 export function getProducts(): Product[] {
