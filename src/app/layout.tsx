@@ -5,6 +5,7 @@ import {
   DM_Sans,
   Noto_Naskh_Arabic,
   Noto_Sans_Tifinagh,
+  Rakkas,
 } from "next/font/google";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -36,6 +37,12 @@ const notoTifinagh = Noto_Sans_Tifinagh({
   weight: ["400"],
 });
 
+const rakkas = Rakkas({
+  variable: "--font-rakkas",
+  subsets: ["latin"],
+  weight: "400",
+});
+
 export const metadata: Metadata = {
   title: {
     default: `${siteConfig.name} — Moroccan Hammam Rituals`,
@@ -55,7 +62,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${cormorant.variable} ${dmSans.variable} ${notoArabic.variable} ${notoTifinagh.variable}`}
+      className={`${cormorant.variable} ${dmSans.variable} ${notoArabic.variable} ${notoTifinagh.variable} ${rakkas.variable}`}
     >
       <body>
         <Providers>

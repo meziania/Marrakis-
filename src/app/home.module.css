@@ -1,19 +1,42 @@
 .ritual {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(
-    180deg,
-    var(--cream) 0%,
-    #eef5f7 40%,
-    var(--cream) 100%
-  );
+  background-color: #f6efe2;
+  background-image: url("/brand/zellij.svg");
+  background-size: 148px 148px;
+}
+
+.ritualFrame {
+  position: relative;
+  border: 1px solid rgba(201, 162, 39, 0.62);
+  padding: clamp(1.6rem, 4vw, 3.25rem);
+}
+
+.ritualFrame::before {
+  content: "";
+  position: absolute;
+  inset: 0.5rem;
+  border: 1px solid rgba(13, 92, 117, 0.22);
+  pointer-events: none;
 }
 
 .ritualInner {
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr 1.1fr;
-  gap: clamp(2rem, 6vw, 5rem);
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(2rem, 5vw, 4rem);
   align-items: center;
+}
+
+.ritualTitle {
+  font-family: var(--font-arabesque), serif;
+  font-size: clamp(2.6rem, 5vw, 4.4rem);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.15;
+  color: var(--teal-deep);
+  margin-top: 0.65rem;
+  max-width: 12ch;
 }
 
 .ritualCopy p {
@@ -52,10 +75,12 @@
 
 .steps strong {
   display: block;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-size: 0.72rem;
+  font-family: var(--font-arabesque), serif;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 1.7rem;
+  line-height: 1.1;
   color: var(--teal-deep);
 }
 
@@ -66,14 +91,35 @@
 .ritualStage {
   display: grid;
   place-items: center;
-  min-height: 32rem;
-  padding: clamp(1.5rem, 4vw, 3rem);
+  min-height: 28rem;
+  padding: clamp(1rem, 3vw, 2rem) 0;
+}
+
+.arch {
+  width: min(100%, 22rem);
+  padding: 1.35rem 1.35rem 1.15rem;
+  text-align: center;
+  background: #fbf6ec;
+  border: 1.5px solid rgba(201, 162, 39, 0.8);
+  border-radius: 14rem 14rem 1.15rem 1.15rem;
+  box-shadow:
+    inset 0 0 0 7px #f6efe2,
+    inset 0 0 0 8px rgba(13, 92, 117, 0.28);
 }
 
 .ritualMark {
   position: relative;
-  width: min(100%, 22rem);
+  width: min(100%, 14.5rem);
+  margin-inline: auto;
   aspect-ratio: 1157 / 1360;
+}
+
+.motto {
+  margin-top: 0.85rem;
+  font-family: var(--font-arabesque), serif;
+  font-size: 1.85rem;
+  line-height: 1.1;
+  color: #8a6a18;
 }
 
 .ritualMark img {
@@ -144,6 +190,11 @@
   }
 
   .ritualStage {
-    min-height: 24rem;
+    min-height: 0;
+    padding-bottom: 0.5rem;
+  }
+
+  .ritualTitle {
+    max-width: 14ch;
   }
 }

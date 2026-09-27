@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
@@ -9,6 +10,14 @@ import { heroSupport } from "@/lib/collection";
 import styles from "./Hero.module.css";
 
 gsap.registerPlugin(ScrollTrigger);
+
+const trayIngredients = [
+  "Argan",
+  "Aker Fassi rock",
+  "Nila rock",
+  "Sugar scrub",
+  "Argan oil",
+];
 
 export function Hero({ productCount }: { productCount: number }) {
   const rootRef = useRef<HTMLElement>(null);
@@ -43,6 +52,11 @@ export function Hero({ productCount }: { productCount: number }) {
           "[data-hero-cta]",
           { y: 16, opacity: 0, duration: 0.7, stagger: 0.1 },
           "-=0.45"
+        )
+        .from(
+          "[data-hero-tray]",
+          { y: 24, opacity: 0, duration: 0.9 },
+          "-=0.7"
         );
 
       gsap.to("[data-hero-video]", {
@@ -62,20 +76,6 @@ export function Hero({ productCount }: { productCount: number }) {
 
   return (
     <section ref={rootRef} className={styles.hero}>
-      <div className={styles.videoWrap} data-hero-video aria-hidden>
-        <video
-          ref={videoRef}
-          className={styles.heroVideo}
-          src={heroVideoSrc}
-          muted
-          loop
-          playsInline
-          autoPlay
-          poster="/products/nila-bleu.jpg"
-        />
-      </div>
-      <div className={styles.veil} aria-hidden />
-
       <div className={styles.content}>
         <p className={styles.eyebrow} data-hero-eyebrow>
           Moroccan Hammam Rituals
@@ -103,6 +103,38 @@ export function Hero({ productCount }: { productCount: number }) {
             Our story
           </Link>
         </div>
+      </div>
+
+      <div className={styles.scene} data-hero-video>
+        <div className={styles.stage}>
+          <div className={styles.videoFrame}>
+            <video
+              ref={videoRef}
+              className={styles.heroVideo}
+              src={heroVideoSrc}
+              muted
+              loop
+              playsInline
+              autoPlay
+              poster="/products/nila-bleu.jpg"
+            />
+            <div className={styles.veil} aria-hidden />
+          </div>
+          <figure className={styles.tray} data-hero-tray>
+            <Image
+              src="/brand/heritage-tray.png"
+              alt="Brass tray holding argan nuts, aker fassi rock, nila rock, sugar scrub, and argan oil"
+              width={1024}
+              height={1024}
+              priority
+            />
+          </figure>
+        </div>
+        <p className={styles.legend}>
+          {trayIngredients.map((name) => (
+            <span key={name}>{name}</span>
+          ))}
+        </p>
       </div>
     </section>
   );

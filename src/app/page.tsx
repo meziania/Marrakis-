@@ -29,41 +29,46 @@ export default function HomePage() {
       <Hero productCount={products.length} />
 
       <section className={`section ${styles.ritual}`}>
-        <div className={`container ${styles.ritualInner}`}>
-          <Reveal className={styles.ritualCopy}>
-            <p className="eyebrow">The ritual</p>
-            <h2 className="section-title">Heritage care, modern presence</h2>
-            <p>
-              Inspired by Moroccan hammam traditions, MARRAKISSE brings clay,
-              botanicals, and Blue Nila into a quiet, elevated self-care
-              experience — scent, texture, and gesture as one.
-            </p>
-            {steps.length > 0 && (
-              <ol className={styles.steps}>
-                {steps.map((step) => (
-                  <li key={step.product.id}>
-                    <Link href={`/product/${step.product.slug}`}>
-                      <span>{step.number}</span>
-                      <span>
-                        <strong>{step.verb}</strong>
-                        {step.product.name}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </Reveal>
-          <Reveal className={styles.ritualStage} y={60}>
-            <div className={styles.ritualMark}>
-              <Image
-                src="/brand/logo-brand.png"
-                alt={siteConfig.name}
-                fill
-                sizes="(max-width: 900px) 70vw, 22rem"
-              />
-            </div>
-          </Reveal>
+        <div className={`container ${styles.ritualFrame}`}>
+          <div className={styles.ritualInner}>
+            <Reveal className={styles.ritualCopy}>
+              <p className="eyebrow">The ritual</p>
+              <h2 className={styles.ritualTitle}>Heritage care, modern presence</h2>
+              <p>
+                A hammam ritual carried forward. Argan, aker fassi, and blue
+                nila — clay and oil kept close to the old way of caring for
+                the skin, generous and by hand.
+              </p>
+              {steps.length > 0 && (
+                <ol className={styles.steps}>
+                  {steps.map((step) => (
+                    <li key={step.product.id}>
+                      <Link href={`/product/${step.product.slug}`}>
+                        <span>{step.number}</span>
+                        <span>
+                          <strong>{step.verb}</strong>
+                          {step.product.name}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </Reveal>
+            <Reveal className={styles.ritualStage} y={60}>
+              <div className={styles.arch}>
+                <div className={styles.ritualMark}>
+                  <Image
+                    src="/brand/logo-brand.png"
+                    alt={siteConfig.name}
+                    fill
+                    sizes="(max-width: 900px) 70vw, 18rem"
+                  />
+                </div>
+                <p className={styles.motto}>From the hammam</p>
+              </div>
+            </Reveal>
+          </div>
         </div>
       </section>
 

@@ -12,6 +12,7 @@
   --border: rgba(13, 92, 117, 0.12);
   --shadow: 0 24px 60px rgba(8, 69, 86, 0.08);
   --font-display: var(--font-cormorant), "Times New Roman", serif;
+  --font-arabesque: var(--font-rakkas), "Times New Roman", serif;
   --font-body: var(--font-dm-sans), system-ui, sans-serif;
   --nav-h: 7.25rem;
   --max: 72rem;
