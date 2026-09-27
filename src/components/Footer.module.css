@@ -1,0 +1,72 @@
+.footer {
+  border-top: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--cream) 0%, var(--cream-deep) 100%);
+  padding: 3.5rem 0 2rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 2.5rem;
+}
+
+.brand {
+  display: inline-block;
+  line-height: 0;
+  margin-bottom: 0.85rem;
+}
+
+.logo {
+  width: auto;
+  height: 9rem;
+  object-fit: contain;
+}
+
+.tagline {
+  color: var(--muted);
+  max-width: 22rem;
+  font-size: 0.95rem;
+}
+
+.colTitle {
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 1rem;
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.links a {
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+.links a:hover {
+  color: var(--teal-deep);
+}
+
+.bottom {
+  margin-top: 3rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 800px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}

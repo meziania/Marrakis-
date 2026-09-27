@@ -1,0 +1,149 @@
+.ritual {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    var(--cream) 0%,
+    #eef5f7 40%,
+    var(--cream) 100%
+  );
+}
+
+.ritualInner {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: center;
+}
+
+.ritualCopy p {
+  margin-top: 1.25rem;
+  max-width: 38ch;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.steps {
+  list-style: none;
+  margin-top: 2.25rem;
+  max-width: 28rem;
+}
+
+.steps a {
+  display: grid;
+  grid-template-columns: 2.6rem 1fr;
+  gap: 0.85rem;
+  align-items: baseline;
+  padding: 0.95rem 0;
+  border-top: 1px solid var(--border);
+  color: var(--charcoal);
+}
+
+.steps li:last-child a {
+  border-bottom: 1px solid var(--border);
+}
+
+.steps a span:first-child {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--gold);
+}
+
+.steps strong {
+  display: block;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  color: var(--teal-deep);
+}
+
+.steps a:hover strong {
+  color: var(--teal);
+}
+
+.ritualStage {
+  display: grid;
+  place-items: center;
+  min-height: 32rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.ritualMark {
+  position: relative;
+  width: min(100%, 22rem);
+  aspect-ratio: 1157 / 1360;
+}
+
+.ritualMark img {
+  object-fit: contain;
+}
+
+.productsHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1.25rem, 3vw, 2rem);
+}
+
+.ctaBand {
+  background: var(--teal-deep);
+  color: var(--cream);
+  text-align: center;
+  padding: clamp(3.5rem, 8vw, 5.5rem) 1.5rem;
+}
+
+.ctaBand .eyebrow {
+  color: var(--gold-soft);
+}
+
+.ctaBand h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: 0.04em;
+  margin: 0.75rem auto 1rem;
+  max-width: 16ch;
+}
+
+.ctaBand p {
+  color: color-mix(in srgb, var(--cream) 80%, transparent);
+  max-width: 36ch;
+  margin: 0 auto 1.75rem;
+}
+
+.ctaActions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+.ctaBand .btn-outline {
+  border-color: color-mix(in srgb, var(--cream) 55%, transparent);
+  color: var(--cream);
+}
+
+.ctaBand .btn-outline:hover {
+  background: var(--cream);
+  color: var(--teal-deep);
+}
+
+@media (max-width: 900px) {
+  .ritualInner,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ritualStage {
+    min-height: 24rem;
+  }
+}

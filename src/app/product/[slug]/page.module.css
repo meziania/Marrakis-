@@ -1,0 +1,98 @@
+.page {
+  padding: calc(var(--nav-h) + 2.5rem) 0 5rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: start;
+}
+
+.media {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  background: var(--cream-deep);
+  overflow: hidden;
+}
+
+.arabic {
+  font-size: 1.05rem;
+  color: var(--teal);
+  margin: 0.35rem 0 0.75rem;
+}
+
+.tagline {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  margin: 1rem 0;
+  letter-spacing: 0.02em;
+}
+
+.price {
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 1.5rem;
+}
+
+.description {
+  color: var(--muted);
+  margin-bottom: 1.75rem;
+}
+
+.block {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.block h2 {
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 0.85rem;
+}
+
+.benefits {
+  list-style: none;
+  display: grid;
+  gap: 0.55rem;
+  color: var(--muted);
+}
+
+.benefits li::before {
+  content: "·";
+  color: var(--gold);
+  margin-right: 0.55rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.related {
+  margin-top: 4.5rem;
+}
+
+.related h2 {
+  margin-bottom: 1.5rem;
+}
+
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1.25rem, 3vw, 2rem);
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .relatedGrid {
+    grid-template-columns: 1fr;
+  }
+}

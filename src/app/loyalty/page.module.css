@@ -1,0 +1,9 @@
+.page {
+  padding: calc(var(--nav-h) + 3rem) 0 5rem;
+}
+
+.lead {
+  max-width: 28rem;
+  margin-top: 0.85rem;
+  color: var(--muted);
+}

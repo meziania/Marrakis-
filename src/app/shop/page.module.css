@@ -1,0 +1,20 @@
+.page {
+  padding: calc(var(--nav-h) + 3rem) 0 5rem;
+}
+
+.head {
+  margin-bottom: 2.75rem;
+  max-width: 28rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1.25rem, 3vw, 2rem);
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
