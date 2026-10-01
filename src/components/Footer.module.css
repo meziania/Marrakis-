@@ -64,6 +64,25 @@
   letter-spacing: 0.04em;
 }
 
+.credit {
+  margin-top: 0.85rem;
+  text-align: center;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.credit a {
+  color: var(--teal-deep);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.credit a:hover {
+  color: var(--teal);
+}
+
 @media (max-width: 800px) {
   .grid {
     grid-template-columns: 1fr;

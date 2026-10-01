@@ -57,6 +57,12 @@ export function Footer() {
         <Link href="/admin">Admin</Link>
         <span>Moroccan hammam rituals, made for modern self-care</span>
       </div>
+      <p className={`container ${styles.credit}`}>
+        Developed by{" "}
+        <a href="https://cx-systems.vercel.app/" target="_blank" rel="noopener noreferrer">
+          CX Systems
+        </a>
+      </p>
     </footer>
   );
 }
