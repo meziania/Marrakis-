@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { OrderOnWhatsApp } from "@/components/OrderOnWhatsApp";
+import { TiltPhoto } from "@/components/TiltPhoto";
 import { ProductCard } from "@/components/ProductCard";
 import { formatPrice, products } from "@/data/products";
 import { getProductFromStore, getVisibleProducts } from "@/lib/store";
@@ -40,14 +41,16 @@ export default async function ProductPage({
     <div className={`container ${styles.page}`}>
       <div className={styles.layout}>
         <div className={styles.media}>
-          <Image
-            src={product.image}
-            alt={product.name}
-            fill
-            priority
-            sizes="(max-width: 900px) 100vw, 50vw"
-            style={{ objectFit: "cover" }}
-          />
+          <TiltPhoto className={styles.tilt}>
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              priority
+              sizes="(max-width: 900px) 100vw, 50vw"
+              style={{ objectFit: "cover" }}
+            />
+          </TiltPhoto>
         </div>
 
         <div>

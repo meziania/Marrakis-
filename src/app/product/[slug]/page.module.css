@@ -13,7 +13,16 @@
   position: relative;
   aspect-ratio: 4 / 5;
   background: var(--cream-deep);
+  perspective: 1100px;
+}
+
+.tilt {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
+  transform-style: preserve-3d;
+  transition: transform 0.45s ease;
+  will-change: transform;
 }
 
 .arabic {

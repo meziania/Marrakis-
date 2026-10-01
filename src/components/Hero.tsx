@@ -33,6 +33,7 @@ export function Hero({ productCount }: { productCount: number }) {
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
@@ -57,6 +58,11 @@ export function Hero({ productCount }: { productCount: number }) {
           "[data-hero-tray]",
           { y: 24, opacity: 0, duration: 0.9 },
           "-=0.7"
+        )
+        .from(
+          "[data-hero-ingredient]",
+          { y: 10, opacity: 0, duration: 0.45, stagger: 0.08 },
+          "-=0.45"
         );
 
       gsap.to("[data-hero-video]", {
@@ -71,7 +77,43 @@ export function Hero({ productCount }: { productCount: number }) {
       });
     }, root);
 
-    return () => ctx.revert();
+    const stage = root.querySelector<HTMLElement>("[data-hero-stage]");
+    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const onMove = (event: PointerEvent) => {
+      if (!stage) return;
+      const rect = stage.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - 0.5;
+      const y = (event.clientY - rect.top) / rect.height - 0.5;
+      gsap.to(stage, {
+        rotateY: x * 7,
+        rotateX: -y * 6,
+        transformPerspective: 1000,
+        duration: 0.55,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    };
+    const onLeave = () => {
+      if (!stage) return;
+      gsap.to(stage, {
+        rotateX: 0,
+        rotateY: 0,
+        duration: 0.8,
+        ease: "power3.out",
+        overwrite: "auto",
+      });
+    };
+    if (stage && finePointer && !reduceMotion) {
+      stage.addEventListener("pointermove", onMove);
+      stage.addEventListener("pointerleave", onLeave);
+    }
+
+    return () => {
+      stage?.removeEventListener("pointermove", onMove);
+      stage?.removeEventListener("pointerleave", onLeave);
+      ctx.revert();
+    };
   }, []);
 
   return (
@@ -106,7 +148,7 @@ export function Hero({ productCount }: { productCount: number }) {
       </div>
 
       <div className={styles.scene} data-hero-video>
-        <div className={styles.stage}>
+        <div className={styles.stage} data-hero-stage>
           <div className={styles.videoFrame}>
             <video
               ref={videoRef}
@@ -132,7 +174,9 @@ export function Hero({ productCount }: { productCount: number }) {
         </div>
         <p className={styles.legend}>
           {trayIngredients.map((name) => (
-            <span key={name}>{name}</span>
+            <span key={name} data-hero-ingredient>
+              {name}
+            </span>
           ))}
         </p>
       </div>

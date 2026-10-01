@@ -2,7 +2,7 @@ export const siteConfig = {
   /** Brand logo image in /public */
   logoSrc: "/brand/logo-brand.png",
   name: "MARRAKISSÉ",
-  nameArabic: "مراكشية",
+  nameArabic: "مراكيسه",
   nameAmazigh: "ⵎⴰⵔⵔⴰⴽⵉⵙⵙⵉ",
   tagline: "A Timeless Moroccan Hammam Ritual",
   description:

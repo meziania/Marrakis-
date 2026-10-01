@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BrandFilm } from "@/components/BrandFilm";
 import { Hero } from "@/components/Hero";
+import { HomeMotion } from "@/components/HomeMotion";
 import { ProductCard } from "@/components/ProductCard";
 import { Reveal } from "@/components/Reveal";
 import { getVisibleProducts } from "@/lib/store";
@@ -28,21 +29,24 @@ export default function HomePage() {
     <>
       <Hero productCount={products.length} />
 
-      <section className={`section ${styles.ritual}`}>
+      <HomeMotion />
+      <section className={`section ${styles.ritual}`} data-ritual>
         <div className={`container ${styles.ritualFrame}`}>
           <div className={styles.ritualInner}>
-            <Reveal className={styles.ritualCopy}>
-              <p className="eyebrow">The ritual</p>
-              <h2 className={styles.ritualTitle}>Heritage care, modern presence</h2>
-              <p>
-                A hammam ritual carried forward. Argan, aker fassi, and blue
-                nila — clay and oil kept close to the old way of caring for
-                the skin, generous and by hand.
-              </p>
+            <div>
+              <div className={styles.ritualCopy} data-ritual-copy>
+                <p className="eyebrow">The ritual</p>
+                <h2 className={styles.ritualTitle}>Heritage care, modern presence</h2>
+                <p>
+                  A hammam ritual carried forward. Argan, aker fassi, and blue
+                  nila — clay and oil kept close to the old way of caring for
+                  the skin, generous and by hand.
+                </p>
+              </div>
               {steps.length > 0 && (
-                <ol className={styles.steps}>
+                <ol className={styles.steps} data-steps>
                   {steps.map((step) => (
-                    <li key={step.product.id}>
+                    <li key={step.product.id} data-step>
                       <Link href={`/product/${step.product.slug}`}>
                         <span>{step.number}</span>
                         <span>
@@ -54,9 +58,9 @@ export default function HomePage() {
                   ))}
                 </ol>
               )}
-            </Reveal>
-            <Reveal className={styles.ritualStage} y={60}>
-              <div className={styles.arch}>
+            </div>
+            <div className={styles.ritualStage}>
+              <div className={styles.arch} data-arch>
                 <div className={styles.ritualMark}>
                   <Image
                     src="/brand/logo-brand.png"
@@ -67,7 +71,7 @@ export default function HomePage() {
                 </div>
                 <p className={styles.motto}>From the hammam</p>
               </div>
-            </Reveal>
+            </div>
           </div>
         </div>
       </section>

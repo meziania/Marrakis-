@@ -14,10 +14,12 @@
 
 .scene {
   position: relative;
+  perspective: 1200px;
 }
 
 .stage {
   position: relative;
+  transform-style: preserve-3d;
 }
 
 .videoFrame {
@@ -57,6 +59,17 @@
   bottom: 0.85rem;
   width: min(15.5rem, 54%);
   margin: 0;
+  animation: trayFloat 7s ease-in-out infinite;
+}
+
+@keyframes trayFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .tray img {
@@ -207,5 +220,11 @@
   .brandAmazigh {
     font-size: 1rem;
     letter-spacing: 0.1em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tray {
+    animation: none;
   }
 }
