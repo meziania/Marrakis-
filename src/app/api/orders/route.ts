@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { recordOrder } from "@/lib/store";
 
 export async function POST(request: Request) {
+  const ip = clientIp(request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip"));
+  if (!rateLimit(`order:${ip}`, 8, 10 * 60 * 1000)) {
+    return NextResponse.json(
+      { ok: false, error: "Too many orders. Try again shortly." },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = (await request.json()) as {
       name?: string;

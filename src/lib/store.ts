@@ -163,7 +163,7 @@ export function summarizeClients(store = readStore()): ClientSummary[] {
 
 export function getLoyaltyByPhone(phoneInput: string) {
   const phone = digits(phoneInput);
-  if (phone.length < 8) {
+  if (phone.length < 8 || phone.length > 15) {
     return { error: "Enter a valid phone number." as const, loyalty: null };
   }
 
@@ -250,12 +250,14 @@ export function recordOrder(input: {
   productId: string;
   quantity: number;
 }) {
-  const name = input.name.trim();
-  const phone = digits(input.phone);
+  const name = input.name.trim().slice(0, 80);
+  const phone = digits(input.phone).slice(0, 15);
   const quantity = Math.max(1, Math.floor(Number(input.quantity) || 1));
 
   if (name.length < 2) throw new Error("Enter your name.");
   if (phone.length < 8) throw new Error("Enter a valid phone number.");
+  if (quantity > 20) throw new Error("Quantity is too high.");
+  if (!/^[a-z0-9-]{1,80}$/i.test(input.productId)) throw new Error("Product not found.");
 
   const store = readStore();
   const product = store.products.find((item) => item.id === input.productId);
@@ -369,7 +371,9 @@ export function updateProduct(id: string, patch: Partial<Product>) {
     product.price = Math.max(0, patch.price);
   }
   if (patch.benefits) product.benefits = patch.benefits.filter(Boolean);
-  if (patch.image) product.image = patch.image;
+  if (patch.image && /^\/products\/[A-Za-z0-9._-]+$/.test(patch.image)) {
+    product.image = patch.image;
+  }
   if (patch.hidden !== undefined) product.hidden = patch.hidden;
 
   writeStore(store);

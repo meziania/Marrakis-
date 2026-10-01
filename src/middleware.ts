@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { adminConfig } from "@/lib/admin-config";
+import { verifySessionToken } from "@/lib/admin-session";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", pathname);
 
   const isAdmin = pathname.startsWith("/admin");
-  const isLogin = pathname.startsWith("/admin/login");
-  const session = request.cookies.get("marrakisse_admin")?.value;
-
-  if (isAdmin && !isLogin && session !== adminConfig.session) {
-    return NextResponse.redirect(new URL("/admin/login", request.url));
+  const isLogin = pathname === "/admin/login";
+  if (isAdmin && !isLogin) {
+    const session = request.cookies.get("marrakisse_admin")?.value;
+    if (!(await verifySessionToken(session))) {
+      return NextResponse.redirect(new URL("/admin/login", request.url));
+    }
   }
 
   return NextResponse.next({
@@ -21,5 +22,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|icon.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4|ico)$).*)",
+  ],
 };

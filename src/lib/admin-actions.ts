@@ -3,9 +3,17 @@
 import fs from "fs";
 import path from "path";
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { adminConfig } from "@/lib/admin-config";
+import {
+  ADMIN_COOKIE,
+  adminEnvReady,
+  adminSessionMaxAge,
+  createSessionToken,
+  passwordsMatch,
+  verifySessionToken,
+} from "@/lib/admin-session";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 import {
   addProduct,
   setOrderStatus,
@@ -17,7 +25,7 @@ import {
 
 async function assertAdmin() {
   const jar = await cookies();
-  if (jar.get("marrakisse_admin")?.value !== adminConfig.session) {
+  if (!(await verifySessionToken(jar.get(ADMIN_COOKIE)?.value))) {
     redirect("/admin/login");
   }
 }
@@ -26,39 +34,75 @@ export async function loginAdmin(
   _state: { error: string },
   formData: FormData
 ): Promise<{ error: string }> {
+  const headerStore = await headers();
+  const ip = clientIp(headerStore.get("x-forwarded-for") ?? headerStore.get("x-real-ip"));
+  if (!rateLimit(`login:${ip}`, 5, 15 * 60 * 1000)) {
+    return { error: "Too many attempts. Wait a few minutes." };
+  }
+
   const password = String(formData.get("password") ?? "");
-  if (password !== adminConfig.password) {
+  const expected = process.env.ADMIN_PASSWORD ?? "";
+  if (!adminEnvReady()) {
+    console.error("Admin login is locked until ADMIN_PASSWORD and ADMIN_SECRET are set.");
+  }
+  if (!(await passwordsMatch(password, expected))) {
+    await new Promise((resolve) => setTimeout(resolve, 700));
     return { error: "Wrong password." };
   }
 
   const jar = await cookies();
-  jar.set("marrakisse_admin", adminConfig.session, {
+  jar.set(ADMIN_COOKIE, await createSessionToken(), {
     httpOnly: true,
     sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
     path: "/",
+    maxAge: adminSessionMaxAge,
   });
   redirect("/admin");
 }
 
 export async function logoutAdmin() {
   const jar = await cookies();
-  jar.delete("marrakisse_admin");
+  jar.delete(ADMIN_COOKIE);
   redirect("/admin/login");
+}
+
+function imageKind(bytes: Buffer) {
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "jpg";
+  if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+    return "png";
+  }
+  if (
+    bytes.length >= 12 &&
+    bytes.toString("ascii", 0, 4) === "RIFF" &&
+    bytes.toString("ascii", 8, 12) === "WEBP"
+  ) {
+    return "webp";
+  }
+  return "";
+}
+
+function safeProductImage(value: string) {
+  return /^\/products\/[A-Za-z0-9._-]+$/.test(value) ? value : "";
+}
+
+function clip(value: FormDataEntryValue | null, max: number) {
+  return String(value ?? "").trim().slice(0, max);
 }
 
 async function storeImage(formData: FormData) {
   const file = formData.get("photo");
   if (!(file instanceof File) || file.size === 0) return "";
-  if (!file.type.startsWith("image/")) {
-    throw new Error("Choose an image file.");
-  }
+  if (file.size > 5 * 1024 * 1024) throw new Error("Image is too large.");
 
-  const extension =
-    file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+  const bytes = Buffer.from(await file.arrayBuffer());
+  const extension = imageKind(bytes);
+  if (!extension) throw new Error("Choose a JPG, PNG, or WebP image.");
+
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extension}`;
   const directory = path.join(process.cwd(), "public", "products");
   fs.mkdirSync(directory, { recursive: true });
-  fs.writeFileSync(path.join(directory, filename), Buffer.from(await file.arrayBuffer()));
+  fs.writeFileSync(path.join(directory, filename), bytes);
   return `/products/${filename}`;
 }
 
@@ -78,16 +122,16 @@ function refreshShop() {
 export async function saveProduct(formData: FormData) {
   await assertAdmin();
   const uploaded = await storeImage(formData);
-  updateProduct(String(formData.get("id") ?? ""), {
-    name: String(formData.get("name") ?? ""),
-    arabicName: String(formData.get("arabicName") ?? ""),
-    subtitle: String(formData.get("subtitle") ?? ""),
-    tagline: String(formData.get("tagline") ?? ""),
-    description: String(formData.get("description") ?? ""),
-    howToUse: String(formData.get("howToUse") ?? ""),
-    image: uploaded || String(formData.get("image") ?? ""),
+  updateProduct(String(formData.get("id") ?? "").slice(0, 80), {
+    name: clip(formData.get("name"), 120),
+    arabicName: clip(formData.get("arabicName"), 120),
+    subtitle: clip(formData.get("subtitle"), 160),
+    tagline: clip(formData.get("tagline"), 180),
+    description: clip(formData.get("description"), 4000),
+    howToUse: clip(formData.get("howToUse"), 1000),
+    image: uploaded || safeProductImage(String(formData.get("image") ?? "")),
     price: Number(formData.get("price")),
-    benefits: readBenefits(formData),
+    benefits: readBenefits(formData).slice(0, 12).map((line) => line.slice(0, 180)),
   });
   refreshShop();
   redirect("/admin/products?saved=updated");
@@ -97,15 +141,15 @@ export async function createProduct(formData: FormData) {
   await assertAdmin();
   const image = await storeImage(formData);
   addProduct({
-    name: String(formData.get("name") ?? ""),
-    subtitle: String(formData.get("subtitle") ?? ""),
-    tagline: String(formData.get("tagline") ?? ""),
-    description: String(formData.get("description") ?? ""),
-    howToUse: String(formData.get("howToUse") ?? ""),
-    benefits: readBenefits(formData),
+    name: clip(formData.get("name"), 120),
+    subtitle: clip(formData.get("subtitle"), 160),
+    tagline: clip(formData.get("tagline"), 180),
+    description: clip(formData.get("description"), 4000),
+    howToUse: clip(formData.get("howToUse"), 1000),
+    benefits: readBenefits(formData).slice(0, 12).map((line) => line.slice(0, 180)),
     price: Number(formData.get("price")),
     image,
-    arabicName: String(formData.get("arabicName") ?? ""),
+    arabicName: clip(formData.get("arabicName"), 120),
   });
   refreshShop();
   redirect("/admin/products?saved=created");

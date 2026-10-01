@@ -18,6 +18,24 @@ const ritualOrder = [
   { id: "nila-bleu", verb: "Reveal" },
 ];
 
+const guestNotes = [
+  {
+    name: "Lina",
+    city: "Dubai",
+    text: "I took a full palm of the scrub. After the rinse my arms felt smooth, and the red clay did not leave them dry.",
+  },
+  {
+    name: "Sara",
+    city: "Casablanca",
+    text: "The ghassoul made my hair feel light, as if the hammam clay had lifted the oil without stripping it.",
+  },
+  {
+    name: "Yasmine",
+    city: "Abu Dhabi",
+    text: "A little blue nila on damp skin left a soft glow. It felt like the quiet at the end of a hammam, not like a mask.",
+  },
+];
+
 export default function HomePage() {
   const products = getVisibleProducts();
   const steps = ritualOrder.flatMap((step, index) => {
@@ -95,6 +113,28 @@ export default function HomePage() {
             {products.map((product) => (
               <Reveal key={product.id}>
                 <ProductCard product={product} />
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={`section ${styles.notes}`}>
+        <div className="container">
+          <Reveal>
+            <p className="eyebrow">How it feels</p>
+            <h2 className="section-title">After the ritual</h2>
+          </Reveal>
+          <div className={styles.noteGrid}>
+            {guestNotes.map((note) => (
+              <Reveal key={note.name}>
+                <figure className={styles.note}>
+                  <blockquote>{note.text}</blockquote>
+                  <figcaption>
+                    <span>{note.name}</span>
+                    {note.city}
+                  </figcaption>
+                </figure>
               </Reveal>
             ))}
           </div>

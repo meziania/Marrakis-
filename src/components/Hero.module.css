@@ -1,100 +1,38 @@
 .hero {
   position: relative;
   min-height: 100svh;
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  display: flex;
   align-items: center;
-  gap: clamp(1.5rem, 4vw, 3.5rem);
-  padding: calc(var(--nav-h) + 1.25rem) clamp(1.25rem, 4vw, 3.5rem) 2.75rem;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 12% 80%, rgba(201, 162, 39, 0.14), transparent 26%),
-    linear-gradient(165deg, var(--cream) 0%, #f3eadc 58%, #e7eef0 100%);
+  background: #f3eadc;
 }
 
-.scene {
-  position: relative;
-  perspective: 1200px;
-}
-
-.stage {
-  position: relative;
-  transform-style: preserve-3d;
-}
-
-.videoFrame {
-  position: relative;
-  height: 30rem;
-  overflow: hidden;
-  border: 1px solid rgba(201, 162, 39, 0.7);
-  border-radius: 16rem 16rem 1.1rem 1.1rem;
-  box-shadow:
-    0 0 0 7px rgba(253, 251, 247, 0.7),
-    0 0 0 8px rgba(13, 92, 117, 0.28),
-    0 22px 50px rgba(8, 69, 86, 0.12);
+.videoWrap {
+  position: absolute;
+  inset: -8% 0;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .heroVideo {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 18%;
+  object-position: center 30%;
 }
 
 .veil {
   position: absolute;
   inset: 0;
+  z-index: 1;
   pointer-events: none;
   background: linear-gradient(
-    180deg,
-    rgba(253, 251, 247, 0.05) 30%,
-    rgba(243, 234, 220, 0.28) 100%
+    100deg,
+    rgba(253, 251, 247, 0.88) 0%,
+    rgba(253, 251, 247, 0.62) 38%,
+    rgba(253, 251, 247, 0.18) 68%,
+    rgba(253, 251, 247, 0.08) 100%
   );
-}
-
-.tray {
-  position: absolute;
-  z-index: 2;
-  right: 0.35rem;
-  bottom: 0.85rem;
-  width: min(15.5rem, 54%);
-  margin: 0;
-  animation: trayFloat 7s ease-in-out infinite;
-}
-
-@keyframes trayFloat {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.tray img {
-  width: 100%;
-  height: auto;
-  border-radius: 50%;
-  border: 3px solid #f6efe2;
-  box-shadow:
-    0 0 0 1px rgba(201, 162, 39, 0.75),
-    0 16px 36px rgba(42, 42, 40, 0.16);
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.2rem 0.85rem;
-  margin: 0.95rem 0 0;
-}
-
-.legend span {
-  font-family: var(--font-arabesque), serif;
-  font-size: 1.2rem;
-  line-height: 1.15;
-  color: var(--teal-deep);
 }
 
 .content {
@@ -103,7 +41,9 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  max-width: 36rem;
+  width: min(100% - 2.5rem, 40rem);
+  margin-left: clamp(1.25rem, 6vw, 5rem);
+  padding: calc(var(--nav-h) + 1.5rem) 0 3rem;
 }
 
 .eyebrow {
@@ -183,30 +123,70 @@
   gap: 0.85rem;
 }
 
+.tray {
+  position: absolute;
+  z-index: 2;
+  right: clamp(1.25rem, 4vw, 3.5rem);
+  bottom: 2.25rem;
+  width: min(16rem, 28vw);
+  margin: 0;
+  animation: trayFloat 7s ease-in-out infinite;
+}
+
+@keyframes trayFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.tray img {
+  width: 100%;
+  height: auto;
+  border-radius: 50%;
+  border: 3px solid #f6efe2;
+  box-shadow:
+    0 0 0 1px rgba(201, 162, 39, 0.75),
+    0 16px 36px rgba(42, 42, 40, 0.16);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.15rem 0.7rem;
+  margin-top: 0.65rem;
+}
+
+.legend span {
+  font-family: var(--font-arabesque), serif;
+  font-size: 1.15rem;
+  line-height: 1.15;
+  color: var(--teal-deep);
+}
+
 @media (max-width: 900px) {
   .hero {
-    grid-template-columns: 1fr;
-    min-height: auto;
-    padding-bottom: 3rem;
+    min-height: 100svh;
+    align-items: flex-end;
   }
 
-  .scene {
-    margin-top: 0.5rem;
+  .content {
+    width: auto;
+    margin: 0 1.25rem 11rem;
+    padding-top: calc(var(--nav-h) + 1.25rem);
   }
 
-  .videoFrame {
-    height: 20rem;
-    border-radius: 11rem 11rem 1rem 1rem;
-  }
-
-  .tray {
-    width: min(12.25rem, 52%);
-    right: 0.35rem;
-    bottom: 0.65rem;
-  }
-
-  .legend span {
-    font-size: 1.05rem;
+  .veil {
+    background: linear-gradient(
+      180deg,
+      rgba(253, 251, 247, 0.2) 0%,
+      rgba(253, 251, 247, 0.72) 42%,
+      rgba(253, 251, 247, 0.92) 100%
+    );
   }
 
   .brand {
@@ -220,6 +200,16 @@
   .brandAmazigh {
     font-size: 1rem;
     letter-spacing: 0.1em;
+  }
+
+  .tray {
+    right: 0.85rem;
+    bottom: 1rem;
+    width: min(9.5rem, 42vw);
+  }
+
+  .legend span {
+    font-size: 0.95rem;
   }
 }
 

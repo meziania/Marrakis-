@@ -53,16 +53,20 @@ export function Footer() {
       </div>
 
       <div className={`container ${styles.bottom}`}>
-        <span>© 2026 {siteConfig.name}</span>
-        <Link href="/admin">Admin</Link>
+        <span className={styles.legal}>
+          © 2026 {siteConfig.name}
+          <Link href="/admin">Admin</Link>
+        </span>
+        <a
+          className={styles.credit}
+          href="https://cx-systems.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Developed by <span>CX Systems</span>
+        </a>
         <span>Moroccan hammam rituals, made for modern self-care</span>
       </div>
-      <p className={`container ${styles.credit}`}>
-        Developed by{" "}
-        <a href="https://cx-systems.vercel.app/" target="_blank" rel="noopener noreferrer">
-          CX Systems
-        </a>
-      </p>
     </footer>
   );
 }
