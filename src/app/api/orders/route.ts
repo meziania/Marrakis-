@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       productId?: string;
       quantity?: number;
     };
-    const saved = recordOrder({
+    const saved = await recordOrder({
       name: body.name ?? "",
       phone: body.phone ?? "",
       email: body.email ?? "",

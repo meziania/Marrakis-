@@ -19,7 +19,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = getProductFromStore(slug);
+  const product = await getProductFromStore(slug);
   if (!product) return { title: "Product" };
   return {
     title: product.name,
@@ -33,9 +33,9 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = getProductFromStore(slug);
+  const product = await getProductFromStore(slug);
   if (!product) notFound();
-  const others = getVisibleProducts().filter((item) => item.id !== product.id);
+  const others = (await getVisibleProducts()).filter((item) => item.id !== product.id);
 
   return (
     <div className={`container ${styles.page}`}>

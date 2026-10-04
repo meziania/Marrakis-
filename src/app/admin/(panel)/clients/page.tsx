@@ -15,7 +15,7 @@ export default async function AdminClientsPage({
   const { segment = "all", q = "" } = await searchParams;
   const query = q.trim().toLowerCase();
   const queryDigits = query.replace(/\D/g, "");
-  const store = readStore();
+  const store = await readStore();
   const all = summarizeClients(store);
   const clients = all.filter((client) => {
     if (segment === "loyal" && !client.loyal) return false;

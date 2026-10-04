@@ -36,8 +36,8 @@ const guestNotes = [
   },
 ];
 
-export default function HomePage() {
-  const products = getVisibleProducts();
+export default async function HomePage() {
+  const products = await getVisibleProducts();
   const steps = ritualOrder.flatMap((step, index) => {
     const product = products.find((item) => item.id === step.id);
     return product ? [{ ...step, product, number: String(index + 1).padStart(2, "0") }] : [];

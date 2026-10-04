@@ -123,7 +123,7 @@ function refreshShop() {
 export async function saveProduct(formData: FormData) {
   await assertAdmin();
   const uploaded = await storeImage(formData);
-  updateProduct(String(formData.get("id") ?? "").slice(0, 80), {
+  await updateProduct(String(formData.get("id") ?? "").slice(0, 80), {
     name: clip(formData.get("name"), 120),
     arabicName: clip(formData.get("arabicName"), 120),
     subtitle: clip(formData.get("subtitle"), 160),
@@ -141,7 +141,7 @@ export async function saveProduct(formData: FormData) {
 export async function createProduct(formData: FormData) {
   await assertAdmin();
   const image = await storeImage(formData);
-  addProduct({
+  await addProduct({
     name: clip(formData.get("name"), 120),
     subtitle: clip(formData.get("subtitle"), 160),
     tagline: clip(formData.get("tagline"), 180),
@@ -159,7 +159,7 @@ export async function createProduct(formData: FormData) {
 export async function setProductVisibility(formData: FormData) {
   await assertAdmin();
   const hidden = formData.get("hidden") === "1";
-  setProductHidden(String(formData.get("id") ?? ""), hidden);
+  await setProductHidden(String(formData.get("id") ?? ""), hidden);
   refreshShop();
   redirect(`/admin/products?saved=${hidden ? "hidden" : "shown"}`);
 }
@@ -170,13 +170,13 @@ export async function saveOrderStatus(formData: FormData) {
   if (status !== "new" && status !== "prepared" && status !== "sent") {
     throw new Error("Unknown status.");
   }
-  setOrderStatus(String(formData.get("id") ?? ""), status as OrderStatus);
+  await setOrderStatus(String(formData.get("id") ?? ""), status as OrderStatus);
   redirect(adminReturn(String(formData.get("returnTo") ?? "/admin")));
 }
 
 export async function confirmOrderPurchase(formData: FormData) {
   await assertAdmin();
-  markPurchaseConfirmed(String(formData.get("id") ?? ""));
+  await markPurchaseConfirmed(String(formData.get("id") ?? ""));
   redirect(adminReturn(String(formData.get("returnTo") ?? "/admin"), "purchase"));
 }
 
@@ -189,7 +189,7 @@ function adminReturn(value: string, saved = "status") {
 
 export async function saveLoyaltySettings(formData: FormData) {
   await assertAdmin();
-  updateSettings({
+  await updateSettings({
     loyaltyMinOrders: Number(formData.get("loyaltyMinOrders")),
     loyaltyMinSpend: Number(formData.get("loyaltyMinSpend")),
   });

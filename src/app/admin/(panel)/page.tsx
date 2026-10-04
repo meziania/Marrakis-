@@ -21,7 +21,7 @@ export default async function AdminHomePage({
   const { period: rawPeriod, saved } = await searchParams;
   const period: AnalyticsPeriod =
     rawPeriod === "week" || rawPeriod === "month" ? rawPeriod : "all";
-  const stats = getAnalytics(period);
+  const stats = await getAnalytics(period);
   const maxRevenue = Math.max(...stats.products.map((item) => item.revenue), 1);
   const periodLabel = periods.find((item) => item.id === period)?.label ?? "All time";
   const returnTo = period === "all" ? "/admin" : `/admin?period=${period}`;

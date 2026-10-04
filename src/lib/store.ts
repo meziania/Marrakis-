@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { get, put, BlobNotFoundError } from "@vercel/blob";
 import { products as seedProducts, type Product } from "@/data/products";
 import bundledStore from "../../data/store.json";
 
@@ -52,10 +53,10 @@ export type ClientSummary = Client & {
 };
 
 const bundledPath = path.join(process.cwd(), "data", "store.json");
+const remotePath = "marrakisse-store.json";
 
-function writablePath() {
-  if (process.env.VERCEL) return path.join("/tmp", "marrakisse-store.json");
-  return bundledPath;
+function useRemoteStore() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 }
 
 let memory: StoreData | null = null;
@@ -99,42 +100,76 @@ function readFileStore(file: string): StoreData | null {
   }
 }
 
-function loadInitial(): StoreData {
+function loadLocal(): StoreData {
   return (
-    readFileStore(writablePath()) ??
     readFileStore(bundledPath) ??
     normalize(bundledStore as StoreData) ??
     emptyStore()
   );
 }
 
-export function readStore(): StoreData {
-  if (!memory) memory = loadInitial();
+async function readRemote(): Promise<StoreData | null> {
+  try {
+    const result = await get(remotePath, { access: "private", useCache: false });
+    if (!result || result.statusCode !== 200 || !result.stream) return null;
+    const text = await new Response(result.stream).text();
+    return normalize(JSON.parse(text) as StoreData);
+  } catch (error) {
+    if (error instanceof BlobNotFoundError) return null;
+    throw error;
+  }
+}
+
+async function writeRemote(store: StoreData) {
+  await put(remotePath, JSON.stringify(store), {
+    access: "private",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    contentType: "application/json",
+    cacheControlMaxAge: 60,
+  });
+}
+
+export async function readStore(): Promise<StoreData> {
+  if (useRemoteStore()) {
+    const remote = await readRemote();
+    if (remote) return remote;
+    const seeded = normalize(bundledStore as StoreData);
+    await writeRemote(seeded);
+    return seeded;
+  }
+  if (!memory) memory = loadLocal();
   return JSON.parse(JSON.stringify(memory)) as StoreData;
 }
 
-export function writeStore(store: StoreData) {
+export async function writeStore(store: StoreData) {
+  if (useRemoteStore()) {
+    await writeRemote(store);
+    return;
+  }
+  if (process.env.VERCEL) {
+    throw new Error("Order storage is not configured.");
+  }
   memory = store;
-  const file = writablePath();
   try {
-    fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, JSON.stringify(store, null, 2));
+    fs.mkdirSync(path.dirname(bundledPath), { recursive: true });
+    fs.writeFileSync(bundledPath, JSON.stringify(store, null, 2));
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
     if (code !== "EROFS" && code !== "EACCES" && code !== "ENOENT") throw error;
   }
 }
 
-export function getProducts(): Product[] {
-  return readStore().products;
+export async function getProducts(): Promise<Product[]> {
+  return (await readStore()).products;
 }
 
-export function getVisibleProducts(): Product[] {
-  return getProducts().filter((product) => !product.hidden);
+export async function getVisibleProducts(): Promise<Product[]> {
+  return (await getProducts()).filter((product) => !product.hidden);
 }
 
-export function getProductFromStore(slug: string): Product | undefined {
-  return getVisibleProducts().find((product) => product.slug === slug);
+export async function getProductFromStore(slug: string): Promise<Product | undefined> {
+  return (await getVisibleProducts()).find((product) => product.slug === slug);
 }
 
 export function isLoyal(
@@ -148,7 +183,7 @@ export function isLoyal(
   );
 }
 
-export function summarizeClients(store = readStore()): ClientSummary[] {
+export function summarizeClients(store: StoreData): ClientSummary[] {
   return store.clients
     .map((client) => {
       const orders = store.orders.filter((order) => order.clientId === client.id);
@@ -171,13 +206,13 @@ export function summarizeClients(store = readStore()): ClientSummary[] {
     .sort((a, b) => (b.lastOrderAt ?? "").localeCompare(a.lastOrderAt ?? ""));
 }
 
-export function getLoyaltyByPhone(phoneInput: string) {
+export async function getLoyaltyByPhone(phoneInput: string) {
   const phone = digits(phoneInput);
   if (phone.length < 8 || phone.length > 15) {
     return { error: "Enter a valid phone number." as const, loyalty: null };
   }
 
-  const store = readStore();
+  const store = await readStore();
   const summary = summarizeClients(store).find((client) => client.phone === phone);
   if (!summary || (summary.orderCount < 1 && summary.pendingCount < 1)) {
     return { error: null, loyalty: null };
@@ -197,9 +232,10 @@ export function getLoyaltyByPhone(phoneInput: string) {
   };
 }
 
-export function getAnalytics(period: AnalyticsPeriod = "all", store = readStore()) {
-  const clients = summarizeClients(store);
-  const orders = ordersInPeriod(store.orders, period);
+export async function getAnalytics(period: AnalyticsPeriod = "all", store?: StoreData) {
+  const data = store ?? (await readStore());
+  const clients = summarizeClients(data);
+  const orders = ordersInPeriod(data.orders, period);
   const confirmed = orders.filter((order) => order.confirmed);
   const revenue = confirmed.reduce((sum, order) => sum + order.total, 0);
 
@@ -208,8 +244,8 @@ export function getAnalytics(period: AnalyticsPeriod = "all", store = readStore(
     orderCount: confirmed.length,
     clientCount: clients.length,
     loyalCount: clients.filter((client) => client.loyal).length,
-    settings: store.settings,
-    products: store.products.map((product) => {
+    settings: data.settings,
+    products: data.products.map((product) => {
       const productOrders = confirmed.filter((order) => order.productId === product.id);
       return {
         id: product.id,
@@ -225,11 +261,11 @@ export function getAnalytics(period: AnalyticsPeriod = "all", store = readStore(
       .map((order) => ({
         ...order,
         clientName:
-          store.clients.find((client) => client.id === order.clientId)?.name ??
+          data.clients.find((client) => client.id === order.clientId)?.name ??
           "Client",
         clientPhone:
           order.phone ||
-          store.clients.find((client) => client.id === order.clientId)?.phone ||
+          data.clients.find((client) => client.id === order.clientId)?.phone ||
           "",
       })),
   };
@@ -259,7 +295,7 @@ function digits(value: string) {
   return value.replace(/\D/g, "");
 }
 
-export function recordOrder(input: {
+export async function recordOrder(input: {
   name: string;
   phone: string;
   email: string;
@@ -277,7 +313,7 @@ export function recordOrder(input: {
   if (quantity > 20) throw new Error("Quantity is too high.");
   if (!/^[a-z0-9-]{1,80}$/i.test(input.productId)) throw new Error("Product not found.");
 
-  const store = readStore();
+  const store = await readStore();
   const product = store.products.find((item) => item.id === input.productId);
   if (!product || product.hidden) throw new Error("Product not found.");
 
@@ -312,7 +348,7 @@ export function recordOrder(input: {
     confirmed: false,
   };
   store.orders.push(order);
-  writeStore(store);
+  await writeStore(store);
 
   const summary = summarizeClients(store).find((item) => item.id === client.id);
   return {
@@ -339,7 +375,7 @@ function slugify(value: string) {
   return slug || `product-${Date.now()}`;
 }
 
-export function addProduct(input: {
+export async function addProduct(input: {
   name: string;
   subtitle: string;
   tagline: string;
@@ -354,7 +390,7 @@ export function addProduct(input: {
   if (!name) throw new Error("Enter a product name.");
   if (!input.image) throw new Error("Add a product image.");
 
-  const store = readStore();
+  const store = await readStore();
   let slug = slugify(name);
   if (store.products.some((product) => product.slug === slug)) {
     slug = `${slug}-${Date.now()}`;
@@ -374,11 +410,11 @@ export function addProduct(input: {
     image: input.image,
     accent: "#0d5c75",
   });
-  writeStore(store);
+  await writeStore(store);
 }
 
-export function updateProduct(id: string, patch: Partial<Product>) {
-  const store = readStore();
+export async function updateProduct(id: string, patch: Partial<Product>) {
+  const store = await readStore();
   const product = store.products.find((item) => item.id === id);
   if (!product) throw new Error("Product not found.");
 
@@ -399,34 +435,34 @@ export function updateProduct(id: string, patch: Partial<Product>) {
   }
   if (patch.hidden !== undefined) product.hidden = patch.hidden;
 
-  writeStore(store);
+  await writeStore(store);
 }
 
-export function setProductHidden(id: string, hidden: boolean) {
-  updateProduct(id, { hidden });
+export async function setProductHidden(id: string, hidden: boolean) {
+  await updateProduct(id, { hidden });
 }
 
-export function setOrderStatus(id: string, status: OrderStatus) {
-  const store = readStore();
+export async function setOrderStatus(id: string, status: OrderStatus) {
+  const store = await readStore();
   const order = store.orders.find((item) => item.id === id);
   if (!order) throw new Error("Order not found.");
   order.status = status;
-  writeStore(store);
+  await writeStore(store);
 }
 
-export function confirmPurchase(id: string) {
-  const store = readStore();
+export async function confirmPurchase(id: string) {
+  const store = await readStore();
   const order = store.orders.find((item) => item.id === id);
   if (!order) throw new Error("Order not found.");
   order.confirmed = true;
-  writeStore(store);
+  await writeStore(store);
 }
 
-export function updateSettings(settings: Settings) {
-  const store = readStore();
+export async function updateSettings(settings: Settings) {
+  const store = await readStore();
   store.settings = {
     loyaltyMinOrders: Math.max(1, Math.floor(settings.loyaltyMinOrders) || 1),
     loyaltyMinSpend: Math.max(0, Math.floor(settings.loyaltyMinSpend) || 0),
   };
-  writeStore(store);
+  await writeStore(store);
 }

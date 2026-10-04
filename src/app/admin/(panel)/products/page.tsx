@@ -19,7 +19,7 @@ export default async function AdminProductsPage({
   searchParams: Promise<{ edit?: string; new?: string; saved?: string }>;
 }) {
   const { edit, new: isNew, saved } = await searchParams;
-  const products = getProducts();
+  const products = await getProducts();
   const editing = products.find((product) => product.id === edit);
   const notice = saved ? notices[saved] : "";
 

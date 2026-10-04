@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   description: "Shop MARRAKISSE Moroccan hammam essentials.",
 };
 
-export default function ShopPage() {
-  const products = getVisibleProducts();
+export default async function ShopPage() {
+  const products = await getVisibleProducts();
 
   return (
     <div className={`container ${styles.page}`}>

@@ -18,7 +18,7 @@ export default async function AdminClientPage({
 }) {
   const { id } = await params;
   const { saved } = await searchParams;
-  const store = readStore();
+  const store = await readStore();
   const client = summarizeClients(store).find((item) => item.id === id);
   if (!client) notFound();
 

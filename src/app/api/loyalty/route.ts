@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
   try {
     const body = (await request.json()) as { phone?: string };
-    const result = getLoyaltyByPhone(body.phone ?? "");
+    const result = await getLoyaltyByPhone(body.phone ?? "");
     if (result.error) {
       return NextResponse.json({ ok: false, error: result.error }, { status: 400 });
     }
