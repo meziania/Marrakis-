@@ -44,7 +44,9 @@ export function LoyaltyCard({
       <p className={styles.meta}>
         {orderCount} / {goal} orders · {formatPrice(totalSpent)} of {formatPrice(minSpend)}
       </p>
-      <p className={styles.foot}>{loyal ? "Loyal member" : "Collecting stamps"}</p>
+      <p className={styles.foot}>
+        {orderCount === 0 ? "Awaiting the house" : loyal ? "Loyal member" : "Collecting stamps"}
+      </p>
     </>
   );
 

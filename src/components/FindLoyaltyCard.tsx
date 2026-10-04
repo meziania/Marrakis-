@@ -32,7 +32,9 @@ export function FindLoyaltyCard() {
         return;
       }
       if (!result.loyalty) {
-        setMessage("No card yet for this number. It appears after your first order.");
+        setMessage(
+          "No card yet for this number. It appears after the house confirms your first purchase."
+        );
         return;
       }
       setLoyalty(result.loyalty);

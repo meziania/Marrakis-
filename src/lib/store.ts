@@ -7,6 +7,7 @@ export type Client = {
   id: string;
   name: string;
   phone: string;
+  email?: string;
   createdAt: string;
 };
 
@@ -23,6 +24,9 @@ export type Order = {
   total: number;
   createdAt: string;
   status: OrderStatus;
+  email: string;
+  phone: string;
+  confirmed: boolean;
 };
 
 export type AnalyticsPeriod = "all" | "week" | "month";
@@ -44,6 +48,7 @@ export type ClientSummary = Client & {
   totalSpent: number;
   lastOrderAt: string | null;
   loyal: boolean;
+  pendingCount: number;
 };
 
 const bundledPath = path.join(process.cwd(), "data", "store.json");
@@ -74,6 +79,9 @@ function normalize(parsed: Partial<StoreData> | null | undefined): StoreData {
     orders: (parsed?.orders ?? []).map((order) => ({
       ...order,
       status: normalizeStatus(order.status),
+      email: order.email ?? "",
+      phone: order.phone ?? "",
+      confirmed: order.confirmed === true,
     })),
     settings: {
       loyaltyMinOrders: parsed?.settings?.loyaltyMinOrders ?? 2,
@@ -144,7 +152,8 @@ export function summarizeClients(store = readStore()): ClientSummary[] {
   return store.clients
     .map((client) => {
       const orders = store.orders.filter((order) => order.clientId === client.id);
-      const totalSpent = orders.reduce((sum, order) => sum + order.total, 0);
+      const confirmed = orders.filter((order) => order.confirmed);
+      const totalSpent = confirmed.reduce((sum, order) => sum + order.total, 0);
       const lastOrderAt = orders.reduce<string | null>((latest, order) => {
         if (!latest || order.createdAt > latest) return order.createdAt;
         return latest;
@@ -152,10 +161,11 @@ export function summarizeClients(store = readStore()): ClientSummary[] {
 
       return {
         ...client,
-        orderCount: orders.length,
+        orderCount: confirmed.length,
         totalSpent,
         lastOrderAt,
-        loyal: isLoyal(orders.length, totalSpent, store.settings),
+        loyal: isLoyal(confirmed.length, totalSpent, store.settings),
+        pendingCount: orders.length - confirmed.length,
       };
     })
     .sort((a, b) => (b.lastOrderAt ?? "").localeCompare(a.lastOrderAt ?? ""));
@@ -169,7 +179,7 @@ export function getLoyaltyByPhone(phoneInput: string) {
 
   const store = readStore();
   const summary = summarizeClients(store).find((client) => client.phone === phone);
-  if (!summary || summary.orderCount < 1) {
+  if (!summary || (summary.orderCount < 1 && summary.pendingCount < 1)) {
     return { error: null, loyalty: null };
   }
 
@@ -190,16 +200,17 @@ export function getLoyaltyByPhone(phoneInput: string) {
 export function getAnalytics(period: AnalyticsPeriod = "all", store = readStore()) {
   const clients = summarizeClients(store);
   const orders = ordersInPeriod(store.orders, period);
-  const revenue = orders.reduce((sum, order) => sum + order.total, 0);
+  const confirmed = orders.filter((order) => order.confirmed);
+  const revenue = confirmed.reduce((sum, order) => sum + order.total, 0);
 
   return {
     revenue,
-    orderCount: orders.length,
+    orderCount: confirmed.length,
     clientCount: clients.length,
     loyalCount: clients.filter((client) => client.loyal).length,
     settings: store.settings,
     products: store.products.map((product) => {
-      const productOrders = orders.filter((order) => order.productId === product.id);
+      const productOrders = confirmed.filter((order) => order.productId === product.id);
       return {
         id: product.id,
         name: product.name,
@@ -216,6 +227,10 @@ export function getAnalytics(period: AnalyticsPeriod = "all", store = readStore(
         clientName:
           store.clients.find((client) => client.id === order.clientId)?.name ??
           "Client",
+        clientPhone:
+          order.phone ||
+          store.clients.find((client) => client.id === order.clientId)?.phone ||
+          "",
       })),
   };
 }
@@ -247,15 +262,18 @@ function digits(value: string) {
 export function recordOrder(input: {
   name: string;
   phone: string;
+  email: string;
   productId: string;
   quantity: number;
 }) {
   const name = input.name.trim().slice(0, 80);
   const phone = digits(input.phone).slice(0, 15);
+  const email = input.email.trim().toLowerCase().slice(0, 120);
   const quantity = Math.max(1, Math.floor(Number(input.quantity) || 1));
 
   if (name.length < 2) throw new Error("Enter your name.");
   if (phone.length < 8) throw new Error("Enter a valid phone number.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Enter a valid email.");
   if (quantity > 20) throw new Error("Quantity is too high.");
   if (!/^[a-z0-9-]{1,80}$/i.test(input.productId)) throw new Error("Product not found.");
 
@@ -269,11 +287,13 @@ export function recordOrder(input: {
       id: `client-${Date.now()}`,
       name,
       phone,
+      email,
       createdAt: new Date().toISOString(),
     };
     store.clients.push(client);
   } else {
     client.name = name;
+    client.email = email;
   }
 
   const order: Order = {
@@ -287,6 +307,9 @@ export function recordOrder(input: {
     total: product.price * quantity,
     createdAt: new Date().toISOString(),
     status: "new",
+    email,
+    phone,
+    confirmed: false,
   };
   store.orders.push(order);
   writeStore(store);
@@ -297,8 +320,8 @@ export function recordOrder(input: {
     loyalty: {
       name: summary?.name ?? client.name,
       phone: summary?.phone ?? client.phone,
-      orderCount: summary?.orderCount ?? 1,
-      totalSpent: summary?.totalSpent ?? order.total,
+      orderCount: summary?.orderCount ?? 0,
+      totalSpent: summary?.totalSpent ?? 0,
       loyal: summary?.loyal ?? false,
       minOrders: store.settings.loyaltyMinOrders,
       minSpend: store.settings.loyaltyMinSpend,
@@ -388,6 +411,14 @@ export function setOrderStatus(id: string, status: OrderStatus) {
   const order = store.orders.find((item) => item.id === id);
   if (!order) throw new Error("Order not found.");
   order.status = status;
+  writeStore(store);
+}
+
+export function confirmPurchase(id: string) {
+  const store = readStore();
+  const order = store.orders.find((item) => item.id === id);
+  if (!order) throw new Error("Order not found.");
+  order.confirmed = true;
   writeStore(store);
 }
 

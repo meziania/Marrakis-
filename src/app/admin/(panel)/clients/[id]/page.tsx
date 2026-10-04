@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LoyaltyCard } from "../../../LoyaltyCard";
+import { OrderContact } from "../../../OrderContact";
 import { OrderStatusForm } from "../../../OrderStatusForm";
 import { formatPrice } from "@/data/products";
 import { readStore, summarizeClients } from "@/lib/store";
@@ -34,13 +35,15 @@ export default async function AdminClientPage({
           <h1>{client.name}</h1>
         </div>
         <p className={styles.note}>
-          {client.orderCount} orders · {formatPrice(client.totalSpent)}
+          {client.orderCount} confirmed · {client.pendingCount} waiting ·{" "}
+          {formatPrice(client.totalSpent)}
         </p>
       </header>
 
       {saved === "status" && <p className={styles.notice}>Order updated.</p>}
+      {saved === "purchase" && <p className={styles.notice}>Purchase added to the loyalty card.</p>}
 
-      {client.orderCount > 0 && (
+      {(client.orderCount > 0 || client.pendingCount > 0) && (
         <div className={styles.loyaltySolo}>
           <LoyaltyCard
             client={client}
@@ -68,6 +71,7 @@ export default async function AdminClientPage({
         <article className={styles.card}>
           <span>Phone</span>
           <strong className={styles.cardPhone}>+{client.phone}</strong>
+          {client.email ? <em>{client.email}</em> : null}
         </article>
         <article className={styles.card}>
           <span>Last order</span>
@@ -88,12 +92,13 @@ export default async function AdminClientPage({
               <th>Total</th>
               <th>Date</th>
               <th>Status</th>
+              <th>Contact</th>
             </tr>
           </thead>
           <tbody>
             {orders.length === 0 && (
               <tr>
-                <td colSpan={5}>No orders yet.</td>
+                <td colSpan={6}>No orders yet.</td>
               </tr>
             )}
             {orders.map((order) => (
@@ -104,6 +109,20 @@ export default async function AdminClientPage({
                 <td>{formatWhen(order.createdAt)}</td>
                 <td>
                   <OrderStatusForm id={order.id} status={order.status} returnTo={returnTo} />
+                </td>
+                <td>
+                  <OrderContact
+                    returnTo={returnTo}
+                    order={{
+                      id: order.id,
+                      productId: order.productId,
+                      productName: order.productName,
+                      quantity: order.quantity,
+                      confirmed: order.confirmed,
+                      clientName: client.name,
+                      clientPhone: order.phone || client.phone,
+                    }}
+                  />
                 </td>
               </tr>
             ))}

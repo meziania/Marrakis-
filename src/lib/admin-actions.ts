@@ -16,6 +16,7 @@ import {
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import {
   addProduct,
+  confirmPurchase as markPurchaseConfirmed,
   setOrderStatus,
   setProductHidden,
   updateProduct,
@@ -173,10 +174,16 @@ export async function saveOrderStatus(formData: FormData) {
   redirect(adminReturn(String(formData.get("returnTo") ?? "/admin")));
 }
 
-function adminReturn(value: string) {
+export async function confirmOrderPurchase(formData: FormData) {
+  await assertAdmin();
+  markPurchaseConfirmed(String(formData.get("id") ?? ""));
+  redirect(adminReturn(String(formData.get("returnTo") ?? "/admin"), "purchase"));
+}
+
+function adminReturn(value: string, saved = "status") {
   const path = value.startsWith("/admin") && !value.startsWith("//") ? value : "/admin";
   const url = new URL(path, "http://local");
-  url.searchParams.set("saved", "status");
+  url.searchParams.set("saved", saved);
   return `${url.pathname}${url.search}`;
 }
 

@@ -39,8 +39,37 @@
   color: var(--teal);
 }
 
-.cardWrap {
-  max-width: 22rem;
+.received {
+  display: grid;
+  gap: 0.85rem;
+  max-width: 28rem;
+  margin-top: 1.75rem;
+  padding: 1.4rem 1.35rem 1.5rem;
+  border: 1px solid var(--border);
+  background: var(--cream-deep);
+}
+
+.receivedKicker {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.received h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 2rem;
+  line-height: 1.1;
+  color: var(--teal-deep);
+}
+
+.received p {
+  margin: 0;
+  color: var(--charcoal);
+  max-width: 24rem;
 }
 
 .qty {

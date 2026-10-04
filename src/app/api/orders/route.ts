@@ -15,12 +15,14 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       name?: string;
       phone?: string;
+      email?: string;
       productId?: string;
       quantity?: number;
     };
     const saved = recordOrder({
       name: body.name ?? "",
       phone: body.phone ?? "",
+      email: body.email ?? "",
       productId: body.productId ?? "",
       quantity: body.quantity ?? 1,
     });

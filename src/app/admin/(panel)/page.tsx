@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { OrderContact } from "../OrderContact";
 import { OrderStatusForm } from "../OrderStatusForm";
 import { formatPrice } from "@/data/products";
 import { getAnalytics, type AnalyticsPeriod } from "@/lib/store";
@@ -33,11 +34,13 @@ export default async function AdminHomePage({
           <h1>Analytics</h1>
         </div>
         <p className={styles.note}>
-          Revenue and orders follow {periodLabel.toLowerCase()}. Clients and loyalty stay all-time.
+          Revenue counts confirmed purchases for {periodLabel.toLowerCase()}. Requests stay in the
+          list until the house confirms them.
         </p>
       </header>
 
       {saved === "status" && <p className={styles.notice}>Order updated.</p>}
+      {saved === "purchase" && <p className={styles.notice}>Purchase added to the loyalty card.</p>}
 
       <div className={styles.toolbar}>
         <div className={styles.filters}>
@@ -62,7 +65,7 @@ export default async function AdminHomePage({
         <article className={styles.card}>
           <span>Orders</span>
           <strong>{stats.orderCount}</strong>
-          <em>{periodLabel}</em>
+          <em>Confirmed · {periodLabel}</em>
         </article>
         <article className={styles.card}>
           <span>Clients</span>
@@ -108,12 +111,13 @@ export default async function AdminHomePage({
               <th>Total</th>
               <th>Date</th>
               <th>Status</th>
+              <th>Contact</th>
             </tr>
           </thead>
           <tbody>
             {stats.recent.length === 0 && (
               <tr>
-                <td colSpan={6}>No orders in this period.</td>
+                <td colSpan={7}>No orders in this period.</td>
               </tr>
             )}
             {stats.recent.map((order) => (
@@ -129,6 +133,20 @@ export default async function AdminHomePage({
                 <td>{formatWhen(order.createdAt)}</td>
                 <td>
                   <OrderStatusForm id={order.id} status={order.status} returnTo={returnTo} />
+                </td>
+                <td>
+                  <OrderContact
+                    returnTo={returnTo}
+                    order={{
+                      id: order.id,
+                      productId: order.productId,
+                      productName: order.productName,
+                      quantity: order.quantity,
+                      confirmed: order.confirmed,
+                      clientName: order.clientName,
+                      clientPhone: order.clientPhone,
+                    }}
+                  />
                 </td>
               </tr>
             ))}

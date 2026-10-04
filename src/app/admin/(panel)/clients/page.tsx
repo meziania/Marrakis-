@@ -115,7 +115,7 @@ export default async function AdminClientsPage({
             <tr>
               <th>Client</th>
               <th>Phone</th>
-              <th>Orders</th>
+              <th>Confirmed</th>
               <th>Spent</th>
               <th>Last order</th>
               <th>Status</th>
@@ -153,6 +153,8 @@ export default async function AdminClientsPage({
                 <td>
                   {client.loyal ? (
                     <span className={styles.badge}>Loyal</span>
+                  ) : client.orderCount === 0 && client.pendingCount > 0 ? (
+                    <span className={styles.quiet}>Waiting</span>
                   ) : (
                     <span className={styles.quiet}>New</span>
                   )}

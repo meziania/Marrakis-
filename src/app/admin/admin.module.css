@@ -608,6 +608,42 @@
   padding: 0.65rem 0.9rem;
 }
 
+.orderTools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.waButton,
+.confirmButton {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.waButton {
+  background: #128c7e;
+  color: white;
+}
+
+.confirmButton {
+  border: 1px solid var(--border);
+  color: var(--teal-deep);
+  background: white;
+  cursor: pointer;
+}
+
+.onCard {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
 .textButton {
   background: none;
   border: 0;

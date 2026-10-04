@@ -13,7 +13,8 @@ export default function LoyaltyPage() {
       <p className="eyebrow">Loyalty</p>
       <h1 className="section-title">Your card</h1>
       <p className={styles.lead}>
-        Enter the WhatsApp number you used to order. No account needed.
+        Enter the WhatsApp number from your request. A stamp appears after the house confirms
+        the purchase. No account needed.
       </p>
       <FindLoyaltyCard />
     </div>
